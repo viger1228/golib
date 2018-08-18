@@ -1,13 +1,17 @@
 package tool
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-yaml/yaml"
 )
 
 var outFile *os.File
@@ -63,4 +67,40 @@ func ParseTime(strTime string) time.Duration {
 		_time = 24 * time.Duration(val) * time.Hour
 	}
 	return _time
+}
+
+// YAML
+func ReadYaml(file string) map[string]interface{} {
+
+	var yml []byte
+	var err error
+	var dict map[string]interface{}
+
+	yml, err = ioutil.ReadFile(file)
+	CheckErr(err)
+
+	err = yaml.Unmarshal(yml, &dict)
+	CheckErr(err)
+
+	return dict
+}
+
+// Json
+func DumpJson(data interface{}, indent int) string {
+
+	var jon []byte
+	fmt.Printf("%T\n", data)
+	jon, err := json.MarshalIndent(data, "", strings.Repeat(" ", indent))
+	CheckErr(err)
+
+	return string(jon)
+
+}
+
+// Format All submap is map[string]interface{}
+func FormatMap(data interface{}) interface{} {
+	switch i := data.(type) {
+	case array:
+
+	}
 }
