@@ -1,93 +1,77 @@
-// File: ping.go
+// File: tcping.go
 // Author: walker
 // Changelogs:
-//   2018.08.10: init
+//   2018.08.16: init
 
 //func main() {
-//
-//	var pinger Pinger = Pinger{
-//		Target:   "10.140.50.113",
-//		Times:    30,
+//	var tcpinger TCPinger = TCPinger{
+//		Target:   "10.180.5.107",
+//		Port:     3000,
+//		Times:    5,
 //		Timeout:  2,
 //		Interval: 1,
 //		Statis:   map[string]float64{},
 //	}
-//
-//	pinger.Run()
-//	fmt.Println(pinger.Statis)
+//	tcpinger.Run()
+//	fmt.Println(tcpinger.Statis)
 //}
 
-package ping
+package tcping
 
 import (
 	"fmt"
 	"math"
 	"net"
-	"os"
 	"time"
-
-	"github.com/tatsushid/go-fastping"
 )
 
 var (
-	rtts []float64
-	ch   chan int
+	ch chan int
 )
 
-type Pinger struct {
+type TCPinger struct {
 	Target   string
+	Port     int
 	Times    int
 	Timeout  int
 	Interval int
 	Statis   map[string]float64
+	RTTs     []float64
 }
 
-func (self *Pinger) Run() {
-
+func (self *TCPinger) Run() {
 	ch = make(chan int)
 
 	for i := 0; i < self.Times; i++ {
-		go Ping(self.Target, ch, self.Timeout)
+		go self.TCPing(ch)
 		time.Sleep(time.Duration(self.Interval) * time.Second)
 	}
-
 	for i := 0; i < self.Times; i++ {
 		<-ch
 	}
-
-	self.Statis = Statistics(self.Times, rtts)
+	self.Statis = self.Statistics()
 }
 
-func Ping(ip string, ch chan int, timeout int) {
+func (self *TCPinger) TCPing(ch chan int) {
+	var addr string
+	var sTime, eTime int64
+	var conn net.Conn
+	var err error
+	var floatRTT float64
 
-	ping := fastping.NewPinger()
-	raddr, err := net.ResolveIPAddr("ip4:icmp", ip)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	sTime = time.Now().UnixNano()
+	addr = fmt.Sprintf("%v:%v", self.Target, self.Port)
+	conn, err = net.DialTimeout("tcp", addr, time.Duration(self.Timeout)*time.Second)
+	if err == nil {
+		conn.Close()
+		eTime = time.Now().UnixNano()
+		floatRTT = float64(eTime-sTime) / float64(time.Second)
+		self.RTTs = append(self.RTTs, floatRTT)
 	}
-	ping.AddIPAddr(raddr)
-
-	ping.MaxRTT = time.Duration(timeout) * time.Second
-
-	ping.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
-		var floatRTT float64
-		floatRTT = float64(rtt) / float64(time.Second)
-		rtts = append(rtts, floatRTT)
-	}
-
-	ping.OnIdle = func() {
-		ch <- 0
-	}
-
-	err = ping.Run()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	ch <- 0
 }
 
-func Statistics(num int, rtts []float64) map[string]float64 {
+func (self *TCPinger) Statistics() map[string]float64 {
 
 	var loss float64
 	var ansNum int
@@ -98,13 +82,13 @@ func Statistics(num int, rtts []float64) map[string]float64 {
 
 	var sum float64
 
-	ansNum = len(rtts)
+	ansNum = len(self.RTTs)
 	statis := map[string]float64{}
 
-	loss = 1 - (float64(ansNum) / float64(num))
+	loss = 1 - (float64(ansNum) / float64(self.Times))
 
 	if ansNum > 0 {
-		for _, v := range rtts {
+		for _, v := range self.RTTs {
 			rttMax = math.Max(rttMax, v)
 			rttMin = math.Min(rttMin, v)
 			sum += v
@@ -112,7 +96,7 @@ func Statistics(num int, rtts []float64) map[string]float64 {
 		rttAvg = sum / float64(ansNum)
 
 		sum = 0
-		for _, v := range rtts {
+		for _, v := range self.RTTs {
 			sum += math.Pow((v - rttAvg), 2)
 		}
 
