@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -82,25 +83,51 @@ func ReadYaml(file string) map[string]interface{} {
 	err = yaml.Unmarshal(yml, &dict)
 	CheckErr(err)
 
-	return dict
+	return FormatMap(dict).(map[string]interface{})
 }
 
 // Json
-func DumpJson(data interface{}, indent int) string {
-
+func DumpsJson(data interface{}, indent int) string {
 	var jon []byte
-	fmt.Printf("%T\n", data)
-	jon, err := json.MarshalIndent(data, "", strings.Repeat(" ", indent))
+
+	jon, err := json.MarshalIndent(FormatMap(data), "", strings.Repeat(" ", indent))
 	CheckErr(err)
 
 	return string(jon)
-
 }
 
-// Format All submap is map[string]interface{}
+// Format All Map is map[string]interface{}
 func FormatMap(data interface{}) interface{} {
-	switch i := data.(type) {
-	case array:
+	var rsp interface{}
 
+	switch data.(type) {
+	case map[interface{}]interface{}:
+		dict := map[string]interface{}{}
+		for k, v := range data.(map[interface{}]interface{}) {
+			dict[fmt.Sprintf("%v", k)] = FormatMap(v)
+		}
+		rsp = dict
+	case map[string]interface{}:
+		dict := map[string]interface{}{}
+		for k, v := range data.(map[string]interface{}) {
+			dict[k] = FormatMap(v)
+		}
+		rsp = dict
+	case []interface{}:
+		array := []interface{}{}
+		for _, v := range data.([]interface{}) {
+			d := FormatMap(v)
+			array = append(array, d)
+		}
+		rsp = array
+	default:
+		rsp = data
 	}
+	return rsp
+}
+
+func CurrentDir(level int) string {
+	_, file, _, _ := runtime.Caller(level)
+	dir := filepath.Dir(file)
+	return dir
 }
