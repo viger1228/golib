@@ -25,10 +25,6 @@ import (
 	"time"
 )
 
-var (
-	ch chan int
-)
-
 type TCPinger struct {
 	Target   string
 	Port     int
@@ -37,22 +33,23 @@ type TCPinger struct {
 	Interval int
 	Statis   map[string]float64
 	RTTs     []float64
+	ch       chan int
 }
 
 func (self *TCPinger) Run() {
-	ch = make(chan int)
+	self.ch = make(chan int)
 
 	for i := 0; i < self.Times; i++ {
-		go self.TCPing(ch)
+		go self.TCPing()
 		time.Sleep(time.Duration(self.Interval) * time.Second)
 	}
 	for i := 0; i < self.Times; i++ {
-		<-ch
+		<-self.ch
 	}
 	self.Statis = self.Statistics()
 }
 
-func (self *TCPinger) TCPing(ch chan int) {
+func (self *TCPinger) TCPing() {
 	var addr string
 	var sTime, eTime int64
 	var conn net.Conn
@@ -68,7 +65,7 @@ func (self *TCPinger) TCPing(ch chan int) {
 		floatRTT = float64(eTime-sTime) / float64(time.Second)
 		self.RTTs = append(self.RTTs, floatRTT)
 	}
-	ch <- 0
+	self.ch <- 0
 }
 
 func (self *TCPinger) Statistics() map[string]float64 {
@@ -107,12 +104,14 @@ func (self *TCPinger) Statistics() map[string]float64 {
 		statis["min"] = rttMin
 		statis["avg"] = rttAvg
 		statis["std"] = rttStd
+		statis["num"] = float64(ansNum)
 	} else {
 		statis["loss"] = loss
 		statis["max"] = 0.0
 		statis["min"] = 0.0
 		statis["avg"] = 0.0
 		statis["std"] = 0.0
+		statis["num"] = float64(ansNum)
 	}
 	return statis
 }
