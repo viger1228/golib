@@ -1,4 +1,9 @@
-package influxdb
+// File: influx.go
+// Author: walker
+// Changelogs:
+//   2018.08.21: init
+
+package influx
 
 import (
 	"fmt"
@@ -7,28 +12,17 @@ import (
 	"net/url"
 	"strings"
 
-	"viger.click/libs/tool"
+	"github.com/viger1228/golib/tool"
 )
 
-type InfluxDB struct {
+type Influx struct {
 	Host string
 	Port int
 	User string
 	Pwd  string
 }
 
-type RspData struct {
-	Results []struct {
-		Statement_id int
-		Series       []struct {
-			Name    string
-			Columns interface{}
-			Values  interface{}
-		}
-	}
-}
-
-func (self *InfluxDB) Request(url string, method string, reqD string) string {
+func (self *Influx) Request(url string, method string, reqD string) string {
 
 	req, err := http.NewRequest(method, url, strings.NewReader(reqD))
 	tool.CheckErr(err)
@@ -46,7 +40,7 @@ func (self *InfluxDB) Request(url string, method string, reqD string) string {
 }
 
 // Query Data
-func (self *InfluxDB) Query(db string, sql string) string {
+func (self *Influx) Query(db string, sql string) string {
 
 	reqURL := fmt.Sprintf("http://%v:%v/query?db=%v", self.Host, self.Port, db)
 
@@ -59,7 +53,7 @@ func (self *InfluxDB) Query(db string, sql string) string {
 }
 
 // Create Database
-func (self *InfluxDB) Create(db string) string {
+func (self *Influx) Create(db string) string {
 
 	reqURL := fmt.Sprintf("http://%v:%v/query", self.Host, self.Port)
 
@@ -72,7 +66,7 @@ func (self *InfluxDB) Create(db string) string {
 }
 
 // Drop Database
-func (self *InfluxDB) Delete(db string) string {
+func (self *Influx) Delete(db string) string {
 
 	reqURL := fmt.Sprintf("http://%v:%v/query", self.Host, self.Port)
 
@@ -85,7 +79,7 @@ func (self *InfluxDB) Delete(db string) string {
 }
 
 // Write Data
-func (self *InfluxDB) Write(db string, rp string, sql string) string {
+func (self *Influx) Write(db string, rp string, sql string) string {
 
 	reqURL := fmt.Sprintf("http://%v:%v/write?db=%v&rp=%v", self.Host, self.Port, db, rp)
 	reqD := sql
@@ -93,7 +87,7 @@ func (self *InfluxDB) Write(db string, rp string, sql string) string {
 	return rspD
 }
 
-func (self *InfluxDB) Combination(table string, cols map[string][]string, data []map[string]interface{}) string {
+func (self *Influx) Combination(table string, cols map[string][]string, data []map[string]interface{}) string {
 
 	var sqls []string
 	var tags []string

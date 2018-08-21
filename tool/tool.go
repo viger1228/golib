@@ -87,13 +87,18 @@ func ReadYaml(file string) map[string]interface{} {
 }
 
 // Json
-func DumpsJson(data interface{}, indent int) string {
+func DumpsJson(data interface{}, indent int) []byte {
 	var jon []byte
-
 	jon, err := json.MarshalIndent(FormatMap(data), "", strings.Repeat(" ", indent))
 	CheckErr(err)
+	return jon
+}
 
-	return string(jon)
+func LoadsJson(data []byte) interface{} {
+	var dict interface{}
+	err := json.Unmarshal(data, &dict)
+	CheckErr(err)
+	return dict
 }
 
 // Format All Map is map[string]interface{}
