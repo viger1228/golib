@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -49,6 +50,24 @@ func CheckErr(err error) {
 		log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 		return
 	}
+}
+
+func Request(url string, method string, reqD string, reqH map[string]string) string {
+
+	req, err := http.NewRequest(method, url, strings.NewReader(reqD))
+	CheckErr(err)
+
+	for k, v := range reqH {
+		req.Header.Set(k, v)
+	}
+
+	rsp, err := http.DefaultClient.Do(req)
+	CheckErr(err)
+	defer rsp.Body.Close()
+	rspD, err := ioutil.ReadAll(rsp.Body)
+	CheckErr(err)
+
+	return string(rspD)
 }
 
 // Change 1s, 1m to 1*time.Second, 1*time.Minute
