@@ -20,6 +20,7 @@ package tcping
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"net"
 	"time"
@@ -27,6 +28,7 @@ import (
 
 type TCPinger struct {
 	Target   string
+	IP       string
 	Port     int
 	Times    int
 	Timeout  int
@@ -38,7 +40,12 @@ type TCPinger struct {
 
 func (self *TCPinger) Run() {
 	self.ch = make(chan int)
-
+	ns, err := net.LookupHost(self.Target)
+	if err != nil {
+		log.Printf(err)
+		return
+	}
+	self.IP = ns[0]
 	for i := 0; i < self.Times; i++ {
 		go self.TCPing()
 		time.Sleep(time.Duration(self.Interval) * time.Second)
@@ -57,7 +64,7 @@ func (self *TCPinger) TCPing() {
 	var floatRTT float64
 
 	sTime = time.Now().UnixNano()
-	addr = fmt.Sprintf("%v:%v", self.Target, self.Port)
+	addr = fmt.Sprintf("%v:%v", self.IP, self.Port)
 	conn, err = net.DialTimeout("tcp", addr, time.Duration(self.Timeout)*time.Second)
 	if err == nil {
 		conn.Close()

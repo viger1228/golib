@@ -36,6 +36,7 @@ var (
 
 type Pinger struct {
 	Target   string
+	IP       string
 	Times    int
 	Timeout  int
 	Interval int
@@ -46,8 +47,14 @@ func (self *Pinger) Run() {
 
 	ch = make(chan int)
 
+	ns, err := net.LookupHost(self.Target)
+	if err != nil {
+		log.Printf(err)
+		return
+	}
+	self.IP = ns[0]
 	for i := 0; i < self.Times; i++ {
-		go Ping(self.Target, ch, self.Timeout)
+		go Ping(self.IP, ch, self.Timeout)
 		time.Sleep(time.Duration(self.Interval) * time.Second)
 	}
 
