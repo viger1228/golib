@@ -103,7 +103,10 @@ func (self *Tracer) Trace() {
 		}
 	}
 	n := index[last]
-	self.Statis = append(self.Statis[:n], self.Statis[n+1:]...)
+	m := index[last-1]
+	if self.Statis[n].IP == self.Statis[m].IP {
+		self.Statis = append(self.Statis[:n], self.Statis[n+1:]...)
+	}
 
 	var loss float64
 	var num int
