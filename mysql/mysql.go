@@ -32,13 +32,13 @@ type MySQL struct {
 	Port     int
 	User     string
 	Password string
-	DataBase string
+	Database string
 }
 
 func (self *MySQL) Cmd(SQL string) ([]string, [][]interface{}) {
 
 	key := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8",
-		self.User, self.Password, self.Host, self.Port, self.DataBase)
+		self.User, self.Password, self.Host, self.Port, self.Database)
 	db, err := sql.Open("mysql", key)
 	defer db.Close()
 	tool.CheckErr(err)
@@ -102,7 +102,7 @@ func (self *MySQL) Query(SQL string) []map[string]interface{} {
 func (self *MySQL) Write(SQL string) {
 
 	key := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8",
-		self.User, self.Password, self.Host, self.Port, self.DataBase)
+		self.User, self.Password, self.Host, self.Port, self.Database)
 	db, err := sql.Open("mysql", key)
 	defer db.Close()
 	tool.CheckErr(err)

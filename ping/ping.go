@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/tatsushid/go-fastping"
+	"github.com/viger1228/golib/tool"
 )
 
 var (
@@ -48,10 +49,8 @@ func (self *Pinger) Run() {
 	ch = make(chan int)
 
 	ns, err := net.LookupHost(self.Target)
-	if err != nil {
-		log.Printf(fmt.Sprintf("%v\n", err))
-		return
-	}
+	tool.CheckErr(err)
+
 	self.IP = ns[0]
 	for i := 0; i < self.Times; i++ {
 		go Ping(self.IP, ch, self.Timeout)
@@ -69,10 +68,8 @@ func Ping(ip string, ch chan int, timeout int) {
 
 	ping := fastping.NewPinger()
 	raddr, err := net.ResolveIPAddr("ip4:icmp", ip)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	tool.CheckErr(err)
+
 	ping.AddIPAddr(raddr)
 
 	ping.MaxRTT = time.Duration(timeout) * time.Second
@@ -87,11 +84,8 @@ func Ping(ip string, ch chan int, timeout int) {
 		ch <- 0
 	}
 
-	err = ping.Run()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	perr = ping.Run()
+	tool.CheckErr(err)
 }
 
 func Statistics(num int, rtts []float64) map[string]float64 {
