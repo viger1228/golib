@@ -49,7 +49,7 @@ func (self *Pinger) Run() {
 
 	ns, err := net.LookupHost(self.Target)
 	if err != nil {
-		log.Printf(err)
+		log.Printf(fmt.Sprintf("%v\n", err))
 		return
 	}
 	self.IP = ns[0]

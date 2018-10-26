@@ -42,7 +42,7 @@ func (self *TCPinger) Run() {
 	self.ch = make(chan int)
 	ns, err := net.LookupHost(self.Target)
 	if err != nil {
-		log.Printf(err)
+		log.Printf(fmt.Sprintf("%v\n", err))
 		return
 	}
 	self.IP = ns[0]
