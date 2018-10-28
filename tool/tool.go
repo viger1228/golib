@@ -18,10 +18,6 @@ import (
 
 var outFile *os.File
 
-func init() {
-	LogPrint()
-}
-
 func LogPrint() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	outFile.Close()

@@ -1,4 +1,4 @@
-// File: trace.go
+// File: traceroute.go
 // Author: walker
 // Changelogs:
 //   2018.10.23: init
@@ -16,7 +16,7 @@
 //	}
 //}
 
-package trace
+package traceroute
 
 import (
 	"fmt"

@@ -21,10 +21,10 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/viger1228/golib/tool"
 )
 
 type MySQL struct {
@@ -41,17 +41,29 @@ func (self *MySQL) Cmd(SQL string) ([]string, [][]interface{}) {
 		self.User, self.Password, self.Host, self.Port, self.Database)
 	db, err := sql.Open("mysql", key)
 	defer db.Close()
-	tool.CheckErr(err)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return nil, nil
+	}
 
 	rsp, err := db.Query(SQL)
-	tool.CheckErr(err)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return nil, nil
+	}
 
 	columns, err := rsp.Columns()
-	tool.CheckErr(err)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return nil, nil
+	}
 
 	_type := []string{}
 	colTypes, err := rsp.ColumnTypes()
-	tool.CheckErr(err)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return nil, nil
+	}
 	for _, n := range colTypes {
 		_type = append(_type, n.DatabaseTypeName())
 	}
@@ -66,7 +78,10 @@ func (self *MySQL) Cmd(SQL string) ([]string, [][]interface{}) {
 	for rsp.Next() {
 		row := make([]interface{}, len(columns))
 		err = rsp.Scan(p...)
-		tool.CheckErr(err)
+		if err != nil {
+			log.Printf("%v\n", err)
+			return nil, nil
+		}
 		for k, v := range r {
 			switch i := v.(type) {
 			case nil:
@@ -105,10 +120,19 @@ func (self *MySQL) Write(SQL string) {
 		self.User, self.Password, self.Host, self.Port, self.Database)
 	db, err := sql.Open("mysql", key)
 	defer db.Close()
-	tool.CheckErr(err)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return
+	}
 	stmt, err := db.Prepare(SQL)
-	tool.CheckErr(err)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return
+	}
 
 	_, err = stmt.Exec()
-	tool.CheckErr(err)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return
+	}
 }

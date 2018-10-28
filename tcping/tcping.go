@@ -20,11 +20,10 @@ package tcping
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"net"
 	"time"
-
-	"github.com/viger1228/golib/tool"
 )
 
 type TCPinger struct {
@@ -42,7 +41,10 @@ type TCPinger struct {
 func (self *TCPinger) Run() {
 	self.ch = make(chan int)
 	ns, err := net.LookupHost(self.Target)
-	tool.CheckErr(err)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return
+	}
 
 	self.IP = ns[0]
 	for i := 0; i < self.Times; i++ {
