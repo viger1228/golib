@@ -25,6 +25,10 @@ func LogPrint() {
 }
 
 func LogFile() {
+	_, err := os.Stat("logs")
+	if err != nil {
+		os.Mkdir("logs", os.ModePerm)
+	}
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	now := time.Now()
 	logfile := fmt.Sprintf("logs/%v.log", now.Format("20060102"))
