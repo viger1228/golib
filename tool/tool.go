@@ -104,8 +104,14 @@ func ReadYaml(file string) map[string]interface{} {
 // Json
 func DumpsJson(data interface{}, indent int) []byte {
 	var jon []byte
-	jon, err := json.MarshalIndent(FormatMap(data), "", strings.Repeat(" ", indent))
-	CheckErr(err)
+	var err error
+	if indent == 0 {
+		jon, err = json.Marshal(FormatMap(data))
+		CheckErr(err)
+	} else {
+		jon, err = json.MarshalIndent(FormatMap(data), "", strings.Repeat(" ", indent))
+		CheckErr(err)
+	}
 	return jon
 }
 
