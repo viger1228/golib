@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -68,6 +69,20 @@ func Request(url string, method string, reqD string, reqH map[string]string) str
 	CheckErr(err)
 
 	return string(rspD)
+}
+
+// Random List
+func RandSlice(array []interface{}) []interface{} {
+	rand.Seed(time.Now().UnixNano())
+	c := 4 * len(array)
+	for i := 0; i < c; i++ {
+		m := rand.Intn(len(array))
+		n := rand.Intn(len(array))
+		tmp = array[m]
+		array[m] = array[n]
+		array[n] = tmp
+	}
+	return array
 }
 
 // Change 1s, 1m to 1*time.Second, 1*time.Minute
