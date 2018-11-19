@@ -78,7 +78,7 @@ func RandSlice(array []interface{}) []interface{} {
 	for i := 0; i < c; i++ {
 		m := rand.Intn(len(array))
 		n := rand.Intn(len(array))
-		tmp = array[m]
+		tmp := array[m]
 		array[m] = array[n]
 		array[n] = tmp
 	}
