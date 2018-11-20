@@ -3,6 +3,7 @@ package tool
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -25,7 +26,7 @@ func LogPrint() {
 	log.SetOutput(os.Stderr)
 }
 
-func LogFile() {
+func LogFile(stdout bool) {
 	_, err := os.Stat("logs")
 	if err != nil {
 		os.Mkdir("logs", os.ModePerm)
@@ -36,7 +37,12 @@ func LogFile() {
 	outFile.Close()
 	outFile, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	CheckErr(err)
-	log.SetOutput(outFile)
+	if stdout {
+		multi := io.MultiWriter(os.Stdout, outFile)
+		log.SetOutput(multi)
+	} else {
+		log.SetOutput(outFile)
+	}
 }
 
 func CheckErr(err error) {
