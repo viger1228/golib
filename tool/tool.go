@@ -77,6 +77,29 @@ func Request(url string, method string, reqD string, reqH map[string]string) str
 	return string(rspD)
 }
 
+// Base64
+type Base64 struct {
+	table   string
+	padding string
+}
+
+func Base64New() Base64 {
+	obj := Base64{
+		table:   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+		padding: "=",
+	}
+	return obj
+}
+
+func (this *Base64) Set(table string, padding string) {
+	this.table = table
+	this.padding = padding
+}
+
+func (this *Base64) Encode(msg string) {
+
+}
+
 // Random List
 func RandSlice(array []interface{}) []interface{} {
 	rand.Seed(time.Now().UnixNano())
