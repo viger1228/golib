@@ -1,3 +1,26 @@
+// File: tool.go
+// Author: walker
+// Mail: walkerIVI@gmail.com
+// ToolList:
+//    func LogPrint()
+//    func LogFile(stdout bool)
+//    func CheckErr(err error)
+//    func Request(url string, method string, reqD string, reqH map[string]string) string
+//    func Btoi(s string) (int, error)
+//    type Base64 struct
+//    func Base64New() Base64
+//    func (this *Base64) Set(table string, padding string)
+//    func (this *Base64) Encode(msg string) string
+//    func (this *Base64) Decode(data string) string
+//    func IndexSlice(array, element interface{}) int
+//    func RandSlice(array []interface}) []interface}
+//    func ParseTime(strTime string) time.Duration
+//    func ReadYaml(file string) map[string]interface}
+//    func DumpsJson(data interface}, indent int) []byte
+//    func LoadsJson(data []byte) interface}
+//    func FormatMap(data interface}) interface}
+//    func CurrentDir(level int) string
+
 package tool
 
 import (
@@ -6,6 +29,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math"
 	"math/rand"
 	"net/http"
 	"os"
@@ -77,6 +101,21 @@ func Request(url string, method string, reqD string, reqH map[string]string) str
 	return string(rspD)
 }
 
+// Binary String to Int
+func Btoi(s string) (int, error) {
+	ans := 0
+	base := 2
+	for n := len(s) - 1; n >= 0; n-- {
+		i := len(s) - 1 - n
+		p, err := strconv.Atoi(string(s[n]))
+		if err != nil {
+			return 0, err
+		}
+		ans += int(math.Pow(float64(base), float64(i))) * p
+	}
+	return ans, nil
+}
+
 // Base64
 type Base64 struct {
 	table   string
@@ -96,8 +135,115 @@ func (this *Base64) Set(table string, padding string) {
 	this.padding = padding
 }
 
-func (this *Base64) Encode(msg string) {
+func (this *Base64) Encode(msg string) string {
+	bin := ""
+	code := ""
+	for _, c := range msg {
+		s := fmt.Sprintf("%b", c)
+		s = strings.Repeat("0", 8-len(s)) + s
+		bin += s
+	}
+	r := len(bin) % 6
+	bin += strings.Repeat("0", 6-r)
+	for i := 0; i < len(bin)/6; i++ {
+		s := bin[6*i : 6*(i+1)]
+		pos, _ := Btoi(s)
+		code += string(this.table[pos])
+	}
+	code += strings.Repeat(this.padding, (6-r)/2)
+	return code
+}
 
+func (this *Base64) Decode(data string) string {
+	bin := ""
+	msg := ""
+	for _, n := range data {
+		if string(n) == this.padding {
+			bin = bin[0 : len(bin)-2]
+		} else {
+			index := IndexSlice(this.table, string(n))
+			s := fmt.Sprintf("%b", index)
+			s = strings.Repeat("0", 6-len(s)) + s
+			bin += s
+		}
+	}
+	msg = ""
+	for i := 0; i < len(bin)/8; i++ {
+		s := bin[8*i : 8*(i+1)]
+		char, _ := Btoi(s)
+		msg += string(char)
+	}
+	return msg
+}
+
+// Index of List
+func IndexSlice(array, element interface{}) int {
+	switch array.(type) {
+	case string:
+		data := array.(string)
+		val := element.(string)
+		for n, _ := range data {
+			flag := true
+			for m, _ := range val {
+				if m+n > len(data) {
+					return -1
+				}
+				if data[n+m] != val[m] {
+					flag = false
+					break
+				}
+			}
+			if flag {
+				return n
+			}
+		}
+		return -1
+	case []string:
+		data := array.([]string)
+		val := element.(string)
+		for n, v := range data {
+			if v == val {
+				return n
+			}
+		}
+		return -1
+	case []int:
+		data := array.([]int)
+		val := element.(int)
+		for n, v := range data {
+			if v == val {
+				return n
+			}
+		}
+		return -1
+	case []int64:
+		data := array.([]int64)
+		val := element.(int64)
+		for n, v := range data {
+			if v == val {
+				return n
+			}
+		}
+		return -1
+	case []float64:
+		data := array.([]float64)
+		val := element.(float64)
+		for n, v := range data {
+			if v == val {
+				return n
+			}
+		}
+		return -1
+	default:
+		data := array.([]interface{})
+		val := element.(interface{})
+		for n, v := range data {
+			if v == val {
+				return n
+			}
+		}
+		return -1
+	}
 }
 
 // Random List
