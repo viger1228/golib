@@ -144,13 +144,17 @@ func (this *Base64) Encode(msg string) string {
 		bin += s
 	}
 	r := len(bin) % 6
-	bin += strings.Repeat("0", 6-r)
+	if r != 0 {
+		bin += strings.Repeat("0", 6-r)
+	}
 	for i := 0; i < len(bin)/6; i++ {
 		s := bin[6*i : 6*(i+1)]
 		pos, _ := Btoi(s)
 		code += string(this.table[pos])
 	}
-	code += strings.Repeat(this.padding, (6-r)/2)
+	if r != 0 {
+		code += strings.Repeat(this.padding, (6-r)/2)
+	}
 	return code
 }
 
