@@ -10,7 +10,7 @@ import (
 type errorObject struct {
 	errCtx     context.Context // 保存錯誤發生當下訊息
 	errContent string          // 錯誤內容
-	errCode    int64           // 錯誤碼(返回用戶端使用)
+	errCode    int             // 錯誤碼(返回用戶端使用)
 	errMessage string          // 錯誤訊息(返回用戶端使用)
 }
 
@@ -29,7 +29,9 @@ func (e *errorObject) ErrorFormat(currentFunc string) string {
 				flag = true
 			}
 			if flag {
-				format += fmt.Sprintf("[%s]", link)
+				split := strings.Split(link, ".")
+				name := split[len(split)-1]
+				format += fmt.Sprintf("[%s]", name)
 			}
 		}
 	}
@@ -51,7 +53,7 @@ func New(ctx context.Context, text string) error {
 }
 
 // NewWithMessage 包含返回用戶端的錯誤碼及訊息
-func NewWithMessage(ctx context.Context, text string, code int64, message string) error {
+func NewWithMessage(ctx context.Context, text string, code int, message string) error {
 	funcLinks := getLinks(3)
 	ctx = context.WithValue(ctx, "funcLinks", funcLinks)
 	return &errorObject{
@@ -73,7 +75,7 @@ func Load(ctx context.Context, err error) error {
 }
 
 // LoadWithMessage 载入一般error，包含返回用戶端的Error Code及訊息
-func LoadWithMessage(ctx context.Context, err error, code int64, message string) error {
+func LoadWithMessage(ctx context.Context, err error, code int, message string) error {
 	funcLinks := getLinks(3)
 	ctx = context.WithValue(ctx, "funcLinks", funcLinks)
 	return &errorObject{
@@ -87,16 +89,15 @@ func LoadWithMessage(ctx context.Context, err error, code int64, message string)
 // ErrorFormat 錯誤格式化
 func ErrorFormat(err interface{}) (format string) {
 	format = "%v"
-	return
-	//currentFunc, _ := getFuncName(2)
-	//if errObject, ok := err.(*errorObject); ok {
-	//	format = errObject.ErrorFormat(currentFunc)
-	//}
-	//return format
+	currentFunc, _ := getFuncName(2)
+	if errObject, ok := err.(*errorObject); ok {
+		format = errObject.ErrorFormat(currentFunc)
+	}
+	return format
 }
 
 // ErrorCode 錯誤碼
-func ErrorCode(err interface{}) (code int64) {
+func ErrorCode(err interface{}) (code int) {
 	code = 0
 	if errObject, ok := err.(*errorObject); ok {
 		code = errObject.errCode
@@ -133,7 +134,5 @@ func getFuncName(skip int) (string, bool) {
 	}
 	f := runtime.FuncForPC(pc)
 	name := f.Name()
-	split := strings.Split(name, ".")
-	name = split[len(split)-1]
 	return name, true
 }
