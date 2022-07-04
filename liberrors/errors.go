@@ -19,7 +19,7 @@ func (e *errorObject) Error() string {
 }
 
 // ErrorFormat 错误链
-func (e *errorObject) ErrorFormat(currentFunc string) string {
+func (e *errorObject) errorFormat(currentFunc string) string {
 	format := ""
 	if funcLinks, ok := e.errCtx.Value("funcLinks").([]string); ok {
 		flag := false
@@ -41,6 +41,20 @@ func (e *errorObject) ErrorFormat(currentFunc string) string {
 		format = "%v"
 	}
 	return format
+}
+
+// appendLink 插入下級函數名稱
+func (e *errorObject) appendLink(funcName string) {
+	var funcLinks []string
+	var ok bool
+	if funcLinks, ok = e.errCtx.Value("funcLinks").([]string); ok {
+		funcLinks = append(funcLinks, "")
+		copy(funcLinks[1:], funcLinks)
+		funcLinks[0] = funcName
+	} else {
+		funcLinks = append(funcLinks, funcName)
+	}
+	e.errCtx = context.WithValue(e.errCtx, "funcLinks", funcLinks)
 }
 
 func New(ctx context.Context, text string) error {
@@ -91,9 +105,16 @@ func ErrorFormat(err interface{}) (format string) {
 	format = "%v"
 	currentFunc, _ := getFuncName(2)
 	if errObject, ok := err.(*errorObject); ok {
-		format = errObject.ErrorFormat(currentFunc)
+		format = errObject.errorFormat(currentFunc)
 	}
 	return format
+}
+
+// AppendLink 插入下級函數名稱
+func AppendLink(err interface{}, funcName string) {
+	if errObject, ok := err.(*errorObject); ok {
+		errObject.appendLink(funcName)
+	}
 }
 
 // ErrorCode 錯誤碼

@@ -68,15 +68,15 @@ func Func4(ctx context.Context) (err error) {
 }
 
 func MyError(ctx context.Context) (err error) {
-	//err = New(ctx, "my error")
-	err = errors.New("my error")
+	err = New(ctx, "my error")
+	AppendLink(err, "Hello")
 	log.Printf(ErrorFormat(err), err.Error())
 	return err
 }
 
 func ThirdPartyError(ctx context.Context) (err error) {
 	err = errors.New("third party error")
-	//err = Load(ctx, err)
+	err = Load(ctx, err)
 	log.Printf(ErrorFormat(err), err.Error())
 	return err
 }
